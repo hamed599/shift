@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="شیفت‌یار">
+<meta name="theme-color" content="#0a0a14">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>شیفت‌یار</title>
+<style>
+:root {
+  --bg: #0a0a14;
+  --card: #14141f;
+  --card2: #1c1c2e;
+  --border: rgba(255,255,255,0.06);
+  --accent: #5b8dee;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --purple: #8b5cf6;
+  --pink: #ec4899;
+  --coral: #ef4444;
+  --text: #f0f0f8;
+  --muted: #6b7280;
+  --sub: #9ca3af;
+  --radius: 20px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html,body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, Tahoma, 'Segoe UI', sans-serif; overflow: hidden; }
+
+#app { position: relative; width: 100%; height: 100vh; overflow: hidden; max-width: 430px; margin: 0 auto; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); background: var(--bg); overflow: hidden; }
+.screen.active { transform: translateX(0); }
+.screen.behind { transform: translateX(-25%); }
+
+.topbar { display: flex; align-items: center; gap: 12px; padding: calc(var(--safe-top) + 16px) 16px 14px; background: var(--card); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.back-btn { width: 38px; height: 38px; border-radius: 50%; background: var(--card2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; flex-shrink: 0; color: var(--accent); }
+.back-btn:active { transform: scale(0.92); }
+.topbar-title { font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
+.topbar-badge { background: var(--accent); color: #fff; font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+
+#home { transform: translateX(0); }
+.home-header { padding: calc(var(--safe-top) + 28px) 20px 20px; background: var(--card); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.home-logo { font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #5b8dee, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2px; }
+.home-sub { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.home-stats { display: flex; gap: 20px; margin-top: 16px; padding: 8px 0; }
+.home-stat { text-align: center; flex: 1; }
+.home-stat-val { font-size: 22px; font-weight: 700; color: var(--text); }
+.home-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.home-content { flex: 1; overflow-y: auto; padding: 20px 16px; }
+.menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.menu-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 16px; cursor: pointer; transition: transform 0.15s; display: flex; flex-direction: column; gap: 10px; }
+.menu-card:active { transform: scale(0.96); }
+.menu-icon { font-size: 32px; }
+.menu-label { font-size: 15px; font-weight: 600; color: var(--text); }
+.menu-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.menu-card.accent { border-color: rgba(91,141,238,0.2); background: rgba(91,141,238,0.05); }
+.menu-card.green { border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.05); }
+.menu-card.amber { border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
+.menu-card.purple { border-color: rgba(139,92,246,0.2); background: rgba(139,92,246,0.05); }
+.menu-card.pink { border-color: rgba(236,72,153,0.2); background: rgba(236,72,153,0.05); }
+.menu-card.full { grid-column: 1/-1; flex-direction: row; align-items: center; gap: 14px; }
+.menu-card.full .menu-icon { font-size: 28px; }
+
+.screen-content { flex: 1; overflow-y: auto; padding: 16px; scrollbar-width: none; }
+.screen-content::-webkit-scrollbar { display: none; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.chip { padding: 8px 20px; border-radius: 24px; font-size: 13px; cursor: pointer; border: 1px solid var(--border); background: var(--card); color: var(--muted); transition: all 0.2s; font-weight: 500; }
+.chip:active { transform: scale(0.95); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.styled-select { width: 100%; padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 15px; margin-bottom: 16px; direction: rtl; outline: none; appearance: none; }
+.styled-select:focus { border-color: var(--accent); }
+
+.search-wrap { position: relative; margin-bottom: 14px; }
+.search-wrap input { width: 100%; padding: 14px 16px 14px 48px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 15px; direction: rtl; outline: none; }
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--muted); }
+.s-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--muted); pointer-events: none; }
+
+.detail-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
+.detail-card-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.detail-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.pill { display: inline-block; padding: 4px 12px; border-radius: 14px; font-size: 12px; font-weight: 600; }
+.pill-blue { background: rgba(91,141,238,0.15); color: var(--accent); }
+.pill-green { background: rgba(16,185,129,0.15); color: var(--green); }
+
+.bar-list { display: flex; flex-direction: column; gap: 12px; }
+.bar-item .bar-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+.bar-item .bar-name { color: var(--text); }
+.bar-item .bar-count { color: var(--accent); font-weight: 600; }
+.bar-track { height: 7px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+
+.pass-list { display: flex; flex-direction: column; }
+.pass-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.pass-item:last-child { border-bottom: none; }
+.pass-name { font-size: 14px; color: var(--text); }
+.pass-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.shift-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; white-space: nowrap; }
+.s-A { background: rgba(91,141,238,0.2); color: var(--accent); }
+.s-B { background: rgba(16,185,129,0.2); color: var(--green); }
+.s-C { background: rgba(245,158,11,0.2); color: var(--amber); }
+.s-D { background: rgba(139,92,246,0.2); color: var(--purple); }
+.s-24H48 { background: rgba(236,72,153,0.2); color: var(--pink); }
+
+.form-input { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-size: 14px; direction: rtl; outline: none; }
+.form-input:focus { border-color: var(--accent); }
+.form-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.btn-primary { width: 100%; padding: 15px; border-radius: 16px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 600; border: none; cursor: pointer; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-secondary { width: 100%; padding: 14px; border-radius: 16px; background: var(--card2); color: var(--sub); font-size: 14px; border: 1px solid var(--border); cursor: pointer; margin-top: 8px; }
+.btn-danger { width: 100%; padding: 14px; border-radius: 16px; background: rgba(239,68,68,0.12); color: var(--coral); font-size: 15px; font-weight: 600; border: 1px solid rgba(239,68,68,0.25); cursor: pointer; }
+.btn-danger:active { transform: scale(0.97); }
+.btn-success { width: 100%; padding: 14px; border-radius: 16px; background: rgba(16,185,129,0.15); color: var(--green); font-size: 15px; font-weight: 600; border: 1px solid rgba(16,185,129,0.25); cursor: pointer; }
+.btn-success:active { transform: scale(0.97); }
+
+.msg-box { padding: 12px 16px; border-radius: 12px; font-size: 13px; margin-top: 10px; }
+.msg-ok { background: rgba(16,185,129,0.12); color: var(--green); }
+.msg-err { background: rgba(239,68,68,0.12); color: var(--coral); }
+
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 18px; }
+.stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 10px; text-align: center; }
+.stat-val { font-size: 24px; font-weight: 700; }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.section-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty-state .ei { font-size: 48px; margin-bottom: 12px; }
+
+.admin-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.admin-mini-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 14px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.admin-mini-card:active { transform: scale(0.95); }
+.admin-mini-card .ami { font-size: 28px; display: block; margin-bottom: 6px; }
+.admin-mini-card .aml { font-size: 13px; font-weight: 500; color: var(--text); }
+.admin-mini-card .amd { font-size: 11px; color: var(--muted); }
+
+.import-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 20px; text-align: center; margin-bottom: 14px; background: var(--card); }
+.import-area .ia-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+.import-area .ia-text { font-size: 14px; color: var(--muted); }
+.import-area .ia-filename { font-size: 13px; color: var(--green); margin-top: 6px; display: none; }
+.import-area input[type="file"] { display: block; width: 100%; padding: 16px; margin-top: 14px; border: 2px solid var(--accent); border-radius: 14px; background: var(--card2); color: var(--text); font-size: 15px; cursor: pointer; }
+.import-area input[type="file"]::file-selector-button { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-left: 12px; }
+
+.import-options { display: flex; gap: 10px; margin-top: 12px; }
+.import-options button { flex: 1; padding: 12px; border-radius: 14px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; }
+.import-options button:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<!-- APP -->
+<div id="app">
+
+<!-- HOME -->
+<div class="screen active" id="home">
+  <div class="home-header">
+    <div class="home-logo">🚌 شیفت‌یار</div>
+    <div class="home-sub">سیستم مدیریت حمل‌ونقل پرسنل</div>
+    <div class="home-stats">
+      <div class="home-stat"><div class="home-stat-val" id="h-total">—</div><div class="home-stat-lbl">مسافر</div></div>
+      <div class="home-stat"><div class="home-stat-val" id="h-drivers">—</div><div class="home-stat-lbl">راننده</div></div>
+      <div class="home-stat"><div class="home-stat-val" id="h-routes">—</div><div class="home-stat-lbl">مسیر</div></div>
+      <div class="home-stat"><div class="home-stat-val" id="h-shifts">۵</div><div class="home-stat-lbl">شیفت</div></div>
+    </div>
+  </div>
+  <div class="home-content">
+    <div class="menu-grid">
+      <div class="menu-card accent" onclick="go('overview')"><span class="menu-icon">📊</span><div class="menu-label">داشبورد</div><div class="menu-desc">آمار کلی و نمودارها</div></div>
+      <div class="menu-card green" onclick="go('shift')"><span class="menu-icon">🕐</span><div class="menu-label">شیفت‌ها</div><div class="menu-desc">تفکیک مسافران هر شیفت</div></div>
+      <div class="menu-card amber" onclick="go('driver')"><span class="menu-icon">🚌</span><div class="menu-label">رانندگان</div><div class="menu-desc">مسافران هر راننده</div></div>
+      <div class="menu-card purple" onclick="go('passengers')"><span class="menu-icon">👥</span><div class="menu-label">مسافران</div><div class="menu-desc">جستجوی مسافران</div></div>
+    </div>
+    <div class="menu-card pink full" onclick="go('admin')">
+      <span class="menu-icon">⚙️</span>
+      <div><div class="menu-label">پنل مدیریت</div><div class="menu-desc">افزودن · ویرایش · جابجایی · حذف · ورود/خروج CSV · پشتیبان</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="screen" id="overview">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">داشبورد</div></div>
+  <div class="screen-content">
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val" id="ov-total" style="color:var(--accent)">—</div><div class="stat-lbl">کل مسافر</div></div>
+      <div class="stat-box"><div class="stat-val" id="ov-drivers" style="color:var(--green)">—</div><div class="stat-lbl">راننده</div></div>
+      <div class="stat-box"><div class="stat-val" id="ov-routes" style="color:var(--amber)">—</div><div class="stat-lbl">مسیر</div></div>
+    </div>
+    <div class="section-label">توزیع شیفت‌ها</div>
+    <div class="detail-card"><div class="bar-list" id="ov-shift-bars"></div></div>
+    <div class="section-label">مسیرها</div>
+    <div class="detail-card"><div class="bar-list" id="ov-route-bars"></div></div>
+  </div>
+</div>
+
+<!-- SHIFT -->
+<div class="screen" id="shift">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">شیفت‌ها</div></div>
+  <div class="screen-content">
+    <div class="section-label">انتخاب شیفت</div>
+    <div class="chips" id="shift-chips">
+      <div class="chip active" onclick="selShift(this,'A')">شیفت A</div>
+      <div class="chip" onclick="selShift(this,'B')">شیفت B</div>
+      <div class="chip" onclick="selShift(this,'C')">شیفت C</div>
+      <div class="chip" onclick="selShift(this,'D')">شیفت D</div>
+      <div class="chip" onclick="selShift(this,'24H48')">24H48</div>
+    </div>
+    <div id="shift-detail"></div>
+  </div>
+</div>
+
+<!-- DRIVER -->
+<div class="screen" id="driver">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">رانندگان</div></div>
+  <div class="screen-content">
+    <div class="section-label">انتخاب راننده</div>
+    <select class="styled-select" id="driver-sel" onchange="selDriver(this.value)"><option value="">— راننده را انتخاب کنید —</option></select>
+    <div id="driver-detail"><div class="empty-state"><div class="ei">🚗</div>یک راننده انتخاب کنید</div></div>
+  </div>
+</div>
+
+<!-- PASSENGERS -->
+<div class="screen" id="passengers">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">مسافران</div><div class="topbar-badge" id="pass-count">—</div></div>
+  <div class="screen-content">
+    <div class="search-wrap"><span class="s-icon">🔍</span><input type="text" placeholder="نام، ایستگاه یا مسیر..." oninput="filterPass(this.value)" id="pass-search"></div>
+    <div id="pass-list"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="screen" id="admin">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">پنل مدیریت</div></div>
+  <div class="screen-content">
+    <div class="section-label">مدیریت مسافران</div>
+    <div class="admin-mini-grid">
+      <div class="admin-mini-card" onclick="go('admin-add')"><span class="ami">➕</span><div class="aml">افزودن</div><div class="amd">مسافر جدید</div></div>
+      <div class="admin-mini-card" onclick="go('admin-edit')"><span class="ami">✏️</span><div class="aml">ویرایش</div><div class="amd">جابجایی</div></div>
+      <div class="admin-mini-card" onclick="go('admin-del')" style="border-color:rgba(239,68,68,0.2)"><span class="ami">❌</span><div class="aml">حذف</div><div class="amd">مسافر</div></div>
+      <div class="admin-mini-card" onclick="go('admin-driver-add')" style="border-color:rgba(245,158,11,0.2)"><span class="ami">🚌</span><div class="aml">راننده</div><div class="amd">جدید</div></div>
+      <div class="admin-mini-card" onclick="go('admin-driver-edit')" style="border-color:rgba(245,158,11,0.15)"><span class="ami">🔧</span><div class="aml">ویرایش</div><div class="amd">راننده</div></div>
+      <div class="admin-mini-card" onclick="go('admin-driver-del')" style="border-color:rgba(239,68,68,0.15)"><span class="ami">🗑️</span><div class="aml">حذف</div><div class="amd">راننده</div></div>
+    </div>
+    <div class="admin-mini-grid">
+      <div class="admin-mini-card" onclick="go('admin-route-edit')" style="border-color:rgba(139,92,246,0.2)"><span class="ami">🗺️</span><div class="aml">ویرایش مسیرها</div><div class="amd">تغییر نام</div></div>
+      <div class="admin-mini-card" onclick="exportCSV()" style="border-color:rgba(139,92,246,0.15)"><span class="ami">📤</span><div class="aml">خروجی CSV</div><div class="amd">دانلود داده‌ها</div></div>
+      <div class="admin-mini-card" onclick="exportBackup()" style="border-color:rgba(16,185,129,0.2)"><span class="ami">💾</span><div class="aml">پشتیبان</div><div class="amd">ذخیره در فایل</div></div>
+      <div class="admin-mini-card" onclick="document.getElementById('restore-input').click()" style="border-color:rgba(245,158,11,0.2)"><span class="ami">📂</span><div class="aml">بازیابی</div><div class="amd">از فایل پشتیبان</div></div>
+    </div>
+    <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreBackup(event)">
+
+    <!-- IMPORT CSV -->
+    <div class="section-label" style="margin-top:8px;">📥 ورود CSV</div>
+    <div class="import-area">
+      <span class="ia-icon">📂</span>
+      <div class="ia-text">فایل CSV خود را انتخاب کنید</div>
+      <div class="ia-filename" id="import-filename"></div>
+      <input type="file" id="import-input" accept=".csv,.txt,.text">
+    </div>
+    <div class="import-options">
+      <button class="btn-success" id="import-replace-btn">🔄 جایگزینی</button>
+      <button class="btn-primary" id="import-append-btn">➕ افزودن</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin:4px 0 12px 0">جایگزینی = حذف داده‌های قبلی | افزودن = اضافه به داده‌های موجود</div>
+    
+    <div id="import-msg"></div>
+    <div style="font-size:13px;color:var(--muted);text-align:center;padding:8px 0" id="admin-info"></div>
+  </div>
+</div>
+
+<!-- ADMIN ADD -->
+<div class="screen" id="admin-add">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">افزودن مسافر</div></div>
+  <div class="screen-content">
+    <div class="detail-card">
+      <div class="form-group">
+        <input id="add-name" class="form-input" placeholder="نام و نام خانوادگی *">
+        <input id="add-company" class="form-input" placeholder="شرکت">
+        <input id="add-station" class="form-input" placeholder="ایستگاه">
+        <select id="add-driver" class="form-input styled-select" style="margin-bottom:0"><option value="">— راننده —</option></select>
+        <select id="add-shift" class="form-input styled-select" style="margin-bottom:0"><option value="">— شیفت —</option><option>A</option><option>B</option><option>C</option><option>D</option><option>24H48</option></select>
+      </div>
+      <button class="btn-primary" onclick="addPassenger()">✅ افزودن مسافر</button>
+      <div id="add-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN EDIT -->
+<div class="screen" id="admin-edit">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">ویرایش / جابجایی</div></div>
+  <div class="screen-content">
+    <div class="search-wrap"><span class="s-icon">🔍</span><input type="text" placeholder="نام مسافر..." oninput="searchEdit(this.value)"></div>
+    <div id="edit-results"></div>
+    <div id="edit-form" style="display:none" class="detail-card">
+      <div class="detail-card-title">ویرایش مسافر</div>
+      <div class="form-group">
+        <input id="edit-name" class="form-input" placeholder="نام">
+        <input id="edit-company" class="form-input" placeholder="شرکت">
+        <input id="edit-station" class="form-input" placeholder="ایستگاه">
+        <select id="edit-driver" class="form-input styled-select" style="margin-bottom:0"><option value="">— راننده —</option></select>
+        <select id="edit-shift" class="form-input styled-select" style="margin-bottom:0"><option value="">— شیفت —</option><option>A</option><option>B</option><option>C</option><option>D</option><option>24H48</option></select>
+      </div>
+      <button class="btn-primary" onclick="saveEdit()">💾 ذخیره تغییرات</button>
+      <button class="btn-secondary" onclick="document.getElementById('edit-form').style.display='none'">انصراف</button>
+      <div id="edit-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN DELETE -->
+<div class="screen" id="admin-del">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">حذف مسافر</div></div>
+  <div class="screen-content">
+    <div class="search-wrap"><span class="s-icon">🔍</span><input type="text" placeholder="نام مسافر..." oninput="searchDel(this.value)"></div>
+    <div id="del-results"></div>
+  </div>
+</div>
+
+<!-- ADMIN DRIVER ADD -->
+<div class="screen" id="admin-driver-add">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">افزودن راننده</div></div>
+  <div class="screen-content">
+    <div class="detail-card">
+      <div class="form-group">
+        <input id="drv-add-name" class="form-input" placeholder="نام و نام خانوادگی راننده *">
+        <input id="drv-add-route" class="form-input" placeholder="نام مسیر *">
+      </div>
+      <div class="section-label" style="margin-bottom:8px">یا انتخاب مسیر موجود</div>
+      <select id="drv-add-route-sel" class="form-input styled-select" style="margin-bottom:14px" onchange="drvPickRoute()"><option value="">— انتخاب مسیر موجود —</option></select>
+      <button class="btn-primary" onclick="addDriver()">✅ افزودن راننده</button>
+      <div id="drv-add-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN DRIVER EDIT -->
+<div class="screen" id="admin-driver-edit">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">ویرایش راننده</div></div>
+  <div class="screen-content">
+    <div class="section-label">انتخاب راننده</div>
+    <select id="drv-edit-sel" class="styled-select" onchange="openDriverEdit(this.value)"><option value="">— راننده را انتخاب کنید —</option></select>
+    <div id="drv-edit-form" style="display:none" class="detail-card">
+      <div class="detail-card-title">ویرایش اطلاعات</div>
+      <div class="form-group">
+        <input id="drv-edit-name" class="form-input" placeholder="نام جدید راننده">
+        <input id="drv-edit-route" class="form-input" placeholder="نام مسیر">
+      </div>
+      <div class="section-label" style="margin-bottom:8px">یا انتخاب مسیر موجود</div>
+      <select id="drv-edit-route-sel" class="form-input styled-select" style="margin-bottom:14px" onchange="drvEditPickRoute()"><option value="">— انتخاب مسیر موجود —</option></select>
+      <button class="btn-primary" onclick="saveDriverEdit()">💾 ذخیره تغییرات</button>
+      <div id="drv-edit-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN DRIVER DELETE -->
+<div class="screen" id="admin-driver-del">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">حذف راننده</div></div>
+  <div class="screen-content">
+    <div class="section-label">انتخاب راننده برای حذف</div>
+    <select id="drv-del-sel" class="styled-select" onchange="showDriverDel(this.value)"><option value="">— راننده را انتخاب کنید —</option></select>
+    <div id="drv-del-info"></div>
+    <div id="drv-del-transfer" style="display:none" class="detail-card">
+      <div class="detail-card-title">⚠️ انتقال مسافران</div>
+      <div style="font-size:13px;color:var(--sub);margin-bottom:12px">مسافران این راننده به کدام راننده منتقل شوند؟</div>
+      <select id="drv-del-target" class="form-input styled-select" style="margin-bottom:14px"><option value="">— راننده مقصد —</option></select>
+      <button class="btn-primary" onclick="deleteDriver(false)">🔄 انتقال و حذف</button>
+      <div style="height:10px"></div>
+      <button onclick="deleteDriver(true)" class="btn-danger">🗑️ حذف با همه مسافران</button>
+      <div id="drv-del-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN ROUTE EDIT -->
+<div class="screen" id="admin-route-edit">
+  <div class="topbar"><div class="back-btn" onclick="back()">←</div><div class="topbar-title">ویرایش مسیرها</div></div>
+  <div class="screen-content">
+    <div class="section-label">انتخاب مسیر</div>
+    <select id="route-edit-sel" class="styled-select" onchange="openRouteEdit(this.value)"><option value="">— مسیر را انتخاب کنید —</option></select>
+    <div id="route-edit-form" style="display:none" class="detail-card">
+      <div class="detail-card-title" id="route-edit-cur"></div>
+      <div class="form-group"><input id="route-edit-name" class="form-input" placeholder="نام جدید مسیر"></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="route-edit-info"></div>
+      <button class="btn-primary" onclick="saveRouteEdit()">💾 تغییر نام مسیر</button>
+      <div id="route-edit-msg"></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+const COLORS = {A:'#5b8dee',B:'#10b981',C:'#f59e0b',D:'#8b5cf6','24H48':'#ec4899'};
+const DB_NAME = 'ShiftDB';
+const STORE_NAME = 'passengers';
+let DATA = [];
+let editIdx = -1;
+const history = ['home'];
+let importFileData = null;
+
+// ===== IndexedDB =====
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = function(e) {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    request.onsuccess = function(e) { resolve(e.target.result); };
+    request.onerror = function(e) { reject(e.target.error); };
+  });
+}
+
+async function loadDataFromDB() {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = function() {
+        const data = request.result;
+        if(data.length > 0) {
+          resolve(data);
+        } else {
+          resolve(null);
+        }
+      };
+      request.onerror = function() { reject(request.error); };
+    });
+  } catch(e) {
+    console.error('DB Error:', e);
+    return null;
+  }
+}
+
+async function saveDataToDB(data) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      // Clear all
+      store.clear();
+      // Add all
+      data.forEach(item => {
+        store.add(item);
+      });
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { reject(tx.error); };
+    });
+  } catch(e) {
+    console.error('Save Error:', e);
+  }
+}
+
+// ===== DATA =====
+async function loadData() {
+  const dbData = await loadDataFromDB();
+  if(dbData && dbData.length > 0) {
+    DATA = dbData;
+    updateAdminInfo();
+    renderOverview();
+    fillDriverSel();
+    return;
+  }
+  // نمونه داده اولیه
+  const raw = [
+    ["محمود اعمالی","صبا فولاد","مهرگان","علی علینژاد","بلوار امام حسین","B"],
+    ["علیرضا جهانگیری","صبا فولاد","سه راه جانبار","علی علینژاد","بلوار امام حسین","C"],
+    ["جواد جراره","صبا فولاد","پیامبراعظم","علی علینژاد","بلوار امام حسین","C"],
+    ["فرزاد جمشیدی","صبا فولاد","نیایش","علی علینژاد","بلوار امام حسین","D"],
+    ["کوروش بیژنی","صبا فولاد","مهرگان","علی علینژاد","بلوار امام حسین","D"],
+    ["حسین جعفری","صبا فولاد","پیامبراعظم","علی علینژاد","بلوار امام حسین","D"],
+    ["عنایت جهانگیری","صبا فولاد","خیابان دانشگاه","علی علینژاد","بلوار امام حسین","A"],
+    ["محمد جواد ظفری","صبا فولاد","طلاییه","علی علینژاد","بلوار امام حسین","A"],
+    ["احمد آسایش پور","صبا فولاد","نیایش","علی علینژاد","بلوار امام حسین","A"],
+    ["کیوان نامجو","صبا فولاد","مجتمع شهید دقت","علی علینژاد","بلوار امام حسین","A"],
+    ["اشکان کابلی","صبا فولاد","چهار راه خانه نان","علی علینژاد","بلوار امام حسین","A"],
+    ["مرتضی زارعی","صبا فولاد","شهرک امام رضا","علی علینژاد","بلوار امام حسین","A"],
+    ["محمد زارعی","صبا فولاد","درخت سبز","علی علینژاد","بلوار امام حسین","A"]
+  ];
+  DATA = raw.map((r, i) => ({ id: i+1, name:r[0], company:r[1], station:r[2], driver:r[3], route:r[4], shift:r[5] }));
+  await saveDataToDB(DATA);
+  updateAdminInfo();
+}
+
+async function saveData() {
+  await saveDataToDB(DATA);
+  updateAdminInfo();
+}
+
+function uniq(arr) { return [...new Set(arr)]; }
+
+// ===== NAV =====
+function go(id) {
+  const cur = history[history.length-1];
+  document.getElementById(cur)?.classList.remove('active');
+  document.getElementById(cur)?.classList.add('behind');
+  document.getElementById(id)?.classList.remove('behind');
+  document.getElementById(id)?.classList.add('active');
+  history.push(id);
+  onEnter(id);
+}
+
+function back() {
+  if(history.length<=1) return;
+  const cur = history.pop();
+  const prev = history[history.length-1];
+  document.getElementById(cur)?.classList.remove('active');
+  setTimeout(()=>{ document.getElementById(cur)?.classList.remove('behind'); },350);
+  document.getElementById(prev)?.classList.remove('behind');
+  document.getElementById(prev)?.classList.add('active');
+}
+
+function onEnter(id) {
+  if(id==='overview') renderOverview();
+  if(id==='shift') renderShift('A');
+  if(id==='driver') fillDriverSel();
+  if(id==='passengers') { renderPassList(''); document.getElementById('pass-search').value=''; }
+  if(id==='admin') updateAdminInfo();
+  if(id==='admin-add') fillFormDrivers();
+  if(id==='admin-edit') { fillFormDrivers(); document.getElementById('edit-results').innerHTML=''; document.getElementById('edit-form').style.display='none'; }
+  if(id==='admin-del') document.getElementById('del-results').innerHTML='';
+  onEnterDriverAdmin(id);
+}
+
+function renderOverview() {
+  document.getElementById('ov-total').textContent = DATA.length;
+  document.getElementById('ov-drivers').textContent = uniq(DATA.map(r=>r.driver)).length;
+  document.getElementById('ov-routes').textContent = uniq(DATA.map(r=>r.route)).length;
+  const shiftC = {};
+  DATA.forEach(r=>{ shiftC[r.shift]=(shiftC[r.shift]||0)+1; });
+  const sMax = Math.max(...Object.values(shiftC)) || 1;
+  document.getElementById('ov-shift-bars').innerHTML = Object.entries(shiftC).sort((a,b)=>b[1]-a[1]).map(([s,c])=>
+    `<div class="bar-item"><div class="bar-header"><span class="bar-name">شیفت ${s}</span><span class="bar-count">${c}</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/sMax*100)}%;background:${COLORS[s]}"></div></div></div>`
+  ).join('');
+  const rC = {};
+  DATA.forEach(r=>{ rC[r.route]=(rC[r.route]||0)+1; });
+  const rMax = Math.max(...Object.values(rC)) || 1;
+  document.getElementById('ov-route-bars').innerHTML = Object.entries(rC).sort((a,b)=>b[1]-a[1]).map(([r,c])=>
+    `<div class="bar-item"><div class="bar-header"><span class="bar-name" style="font-size:12px">${r}</span><span class="bar-count">${c}</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/rMax*100)}%;background:var(--accent)"></div></div></div>`
+  ).join('');
+}
+
+function selShift(el, s) {
+  document.querySelectorAll('#shift-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderShift(s);
+}
+
+function renderShift(s) {
+  const items = DATA.filter(r=>r.shift===s);
+  const rC = {};
+  items.forEach(r=>{ rC[r.route]=(rC[r.route]||0)+1; });
+  const sorted = Object.entries(rC).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1]||1;
+  const color = COLORS[s];
+  document.getElementById('shift-detail').innerHTML =
+    `<div class="detail-card"><div class="detail-meta"><span class="pill pill-blue">${items.length} مسافر</span><span class="pill pill-green">${sorted.length} مسیر</span></div><div class="bar-list">${
+      sorted.map(([r,c])=>`<div class="bar-item"><div class="bar-header"><span class="bar-name">${r}</span><span class="bar-count">${c}</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(c/max*100)}%;background:${color}"></div></div></div>`).join('')
+    }</div></div>
+    <div class="section-label" style="margin-top:16px">مسافران این شیفت</div>
+    <div class="detail-card"><div class="pass-list">${
+      items.map(p=>`<div class="pass-item"><div><div class="pass-name">${p.name}</div><div class="pass-sub">${p.driver} · ${p.station||'—'}</div></div></div>`).join('')
+    }</div></div>`;
+}
+
+function fillDriverSel() {
+  const sel = document.getElementById('driver-sel');
+  const cur = sel.value;
+  const drivers = uniq(DATA.map(r=>r.driver)).sort();
+  sel.innerHTML = '<option value="">— راننده را انتخاب کنید —</option>';
+  drivers.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+  sel.value = cur;
+  if(cur) selDriver(cur);
+}
+
+function selDriver(d) {
+  if(!d){ document.getElementById('driver-detail').innerHTML='<div class="empty-state"><div class="ei">🚗</div>یک راننده انتخاب کنید</div>'; return; }
+  const items = DATA.filter(r=>r.driver===d).sort((a,b)=>a.shift.localeCompare(b.shift));
+  document.getElementById('driver-detail').innerHTML =
+    `<div class="detail-card"><div class="detail-meta"><span class="pill pill-blue">${items.length} مسافر</span><span class="pill pill-green">${uniq(items.map(r=>r.route)).length} مسیر</span></div><div class="pass-list">${
+      items.map(p=>`<div class="pass-item"><div><div class="pass-name">${p.name}</div><div class="pass-sub">${p.station||'—'} · ${p.route}</div></div><span class="shift-badge s-${p.shift}">${p.shift}</span></div>`).join('')
+    }</div></div>`;
+}
+
+function renderPassList(q) {
+  const f = q ? DATA.filter(r=>r.name.includes(q)||r.station?.includes(q)||r.route.includes(q)) : DATA;
+  document.getElementById('pass-count').textContent = f.length;
+  document.getElementById('pass-list').innerHTML =
+    `<div class="detail-card"><div class="pass-list">${
+      f.map(p=>`<div class="pass-item"><div><div class="pass-name">${p.name}</div><div class="pass-sub">${p.driver} · ${p.station||'—'}</div></div><span class="shift-badge s-${p.shift}">${p.shift}</span></div>`).join('')
+    }</div></div>`;
+}
+function filterPass(q) { renderPassList(q.trim()); }
+
+function updateAdminInfo() {
+  document.getElementById('admin-info').textContent = `مجموع: ${DATA.length} مسافر · ${uniq(DATA.map(r=>r.driver)).length} راننده · ${uniq(DATA.map(r=>r.route)).length} مسیر`;
+  ['h-total','h-drivers','h-routes'].forEach((id,i)=>{
+    const vals = [DATA.length, uniq(DATA.map(r=>r.driver)).length, uniq(DATA.map(r=>r.route)).length];
+    document.getElementById(id).textContent = vals[i];
+  });
+}
+
+function fillFormDrivers() {
+  ['add-driver','edit-driver'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value;
+    const drivers = uniq(DATA.map(r=>r.driver)).sort();
+    sel.innerHTML = '<option value="">— راننده —</option>';
+    drivers.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+    sel.value = cur;
+  });
+}
+
+function showMsg(id, text, ok=true) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = `<div class="msg-box ${ok?'msg-ok':'msg-err'}">${text}</div>`;
+  setTimeout(()=>{ el.innerHTML=''; }, 3500);
+}
+
+function addPassenger() {
+  const name=document.getElementById('add-name').value.trim();
+  const driver=document.getElementById('add-driver').value;
+  const shift=document.getElementById('add-shift').value;
+  if(!name){showMsg('add-msg','نام الزامی است',false);return;}
+  if(!driver){showMsg('add-msg','راننده را انتخاب کنید',false);return;}
+  if(!shift){showMsg('add-msg','شیفت را انتخاب کنید',false);return;}
+  const route = DATA.find(r=>r.driver===driver)?.route||'';
+  const maxId = DATA.reduce((max, r) => Math.max(max, r.id || 0), 0);
+  DATA.push({ id: maxId + 1, name, company: document.getElementById('add-company').value.trim(), station: document.getElementById('add-station').value.trim(), driver, route, shift });
+  saveData();
+  ['add-name','add-company','add-station'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-driver').value='';
+  document.getElementById('add-shift').value='';
+  showMsg('add-msg',`✅ "${name}" اضافه شد`);
+  updateAdminInfo();
+}
+
+function searchEdit(q) {
+  if(!q.trim()){document.getElementById('edit-results').innerHTML='';return;}
+  const res = DATA.map((r,i)=>({...r,i})).filter(r=>r.name.includes(q)||r.station?.includes(q));
+  document.getElementById('edit-results').innerHTML = res.length
+    ? `<div class="detail-card"><div class="pass-list">${res.slice(0,10).map(p=>`<div class="pass-item"><div><div class="pass-name">${p.name}</div><div class="pass-sub">${p.driver} · شیفت ${p.shift}</div></div><button onclick="openEdit(${p.i})" style="padding:6px 14px;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;border:none;cursor:pointer">✏️</button></div>`).join('')}</div></div>`
+    : '<div style="color:var(--muted);font-size:13px;padding:8px">نتیجه‌ای یافت نشد</div>';
+}
+
+function openEdit(idx) {
+  editIdx=idx;
+  const p=DATA[idx];
+  fillFormDrivers();
+  document.getElementById('edit-name').value=p.name;
+  document.getElementById('edit-company').value=p.company||'';
+  document.getElementById('edit-station').value=p.station||'';
+  document.getElementById('edit-driver').value=p.driver;
+  document.getElementById('edit-shift').value=p.shift;
+  document.getElementById('edit-form').style.display='block';
+  document.getElementById('edit-form').scrollIntoView({behavior:'smooth'});
+}
+
+function saveEdit() {
+  if(editIdx<0) return;
+  const name=document.getElementById('edit-name').value.trim();
+  const driver=document.getElementById('edit-driver').value;
+  const shift=document.getElementById('edit-shift').value;
+  if(!name){showMsg('edit-msg','نام الزامی است',false);return;}
+  DATA[editIdx]={
+    ...DATA[editIdx],
+    name,
+    company: document.getElementById('edit-company').value.trim(),
+    station: document.getElementById('edit-station').value.trim(),
+    driver,
+    route: DATA.find(r=>r.driver===driver)?.route||DATA[editIdx].route,
+    shift
+  };
+  saveData();
+  document.getElementById('edit-form').style.display='none';
+  document.getElementById('edit-results').innerHTML='';
+  showMsg('edit-msg',`✅ "${name}" بروز شد`);
+  updateAdminInfo();
+  editIdx=-1;
+}
+
+function searchDel(q) {
+  if(!q.trim()){document.getElementById('del-results').innerHTML='';return;}
+  const res=DATA.map((r,i)=>({...r,i})).filter(r=>r.name.includes(q)||r.station?.includes(q));
+  document.getElementById('del-results').innerHTML = res.length
+    ? `<div class="detail-card"><div class="pass-list">${res.slice(0,10).map(p=>`<div class="pass-item"><div><div class="pass-name">${p.name}</div><div class="pass-sub">${p.driver} · شیفت ${p.shift}</div></div><button onclick="delPassenger(${p.i})" style="padding:6px 14px;border-radius:10px;background:rgba(239,68,68,0.15);color:var(--coral);font-size:12px;border:1px solid rgba(239,68,68,0.2);cursor:pointer">🗑️</button></div>`).join('')}</div></div>`
+    : '<div style="color:var(--muted);font-size:13px;padding:8px">نتیجه‌ای یافت نشد</div>';
+}
+
+function delPassenger(idx) {
+  if(!confirm(`"${DATA[idx].name}" حذف شود؟`)) return;
+  DATA.splice(idx,1);
+  saveData();
+  document.getElementById('del-results').innerHTML='';
+  updateAdminInfo();
+}
+
+function exportCSV() {
+  const h='نام,شرکت,ایستگاه,راننده,مسیر,شیفت\n';
+  const r=DATA.map(r=>[r.name,r.company,r.station,r.driver,r.route,r.shift].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+h+r],{type:'text/csv;charset=utf-8'}));
+  a.download='shift_export.csv'; a.click();
+}
+
+// ===== BACKUP =====
+function exportBackup() {
+  const data = JSON.stringify(DATA, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `shift_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showMsg('admin-info', '✅ پشتیبان با موفقیت ذخیره شد');
+}
+
+function restoreBackup(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const newData = JSON.parse(e.target.result);
+      if(Array.isArray(newData) && newData.length > 0) {
+        if(confirm(`${newData.length} مسافر پیدا شد. جایگزین شود؟`)) {
+          DATA = newData;
+          saveData();
+          updateAdminInfo();
+          renderOverview();
+          fillDriverSel();
+          showMsg('admin-info', `✅ ${DATA.length} مسافر با موفقیت بازیابی شد`);
+        }
+      } else {
+        showMsg('admin-info', '❌ فایل معتبر نیست', false);
+      }
+    } catch(err) {
+      showMsg('admin-info', '❌ خطا در خواندن فایل', false);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ===== IMPORT CSV =====
+const importInput = document.getElementById('import-input');
+const importFilename = document.getElementById('import-filename');
+const replaceBtn = document.getElementById('import-replace-btn');
+const appendBtn = document.getElementById('import-append-btn');
+
+importInput.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if(!file) { importFilename.style.display = 'none'; return; }
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    importFileData = event.target.result;
+    importFilename.textContent = `✅ ${file.name} (${Math.round(file.size/1024)} KB)`;
+    importFilename.style.display = 'block';
+    document.getElementById('import-msg').innerHTML = `<div class="msg-box msg-ok">✅ فایل "${file.name}" بارگذاری شد</div>`;
+  };
+  reader.onerror = function() {
+    document.getElementById('import-msg').innerHTML = `<div class="msg-box msg-err">❌ خطا در خواندن فایل</div>`;
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+replaceBtn.addEventListener('click', function(e) {
+  e.stopPropagation();
+  if(!importFileData) { showImportMsg('⚠️ ابتدا یک فایل CSV انتخاب کنید', false); return; }
+  importCSV('replace');
+});
+
+appendBtn.addEventListener('click', function(e) {
+  e.stopPropagation();
+  if(!importFileData) { showImportMsg('⚠️ ابتدا یک فایل CSV انتخاب کنید', false); return; }
+  importCSV('append');
+});
+
+function parseCSVToData(csvText) {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  if(lines.length < 2) return [];
+  let startIdx = 0;
+  for(let i=0; i<Math.min(10, lines.length); i++) {
+    const line = lines[i].toLowerCase();
+    if(line.includes('نام') || line.includes('راننده') || line.includes('مسیر')) { startIdx = i; break; }
+  }
+  const result = [];
+  const maxId = DATA.reduce((max, r) => Math.max(max, r.id || 0), 0);
+  for(let i = startIdx + 1; i < lines.length; i++) {
+    const row = lines[i].trim();
+    if(!row) continue;
+    const fields = [];
+    let current = '';
+    let inQuotes = false;
+    for(let ch of row) {
+      if(ch === '"') { inQuotes = !inQuotes; }
+      else if(ch === ',' && !inQuotes) { fields.push(current.trim()); current = ''; }
+      else { current += ch; }
+    }
+    fields.push(current.trim());
+    if(fields.length >= 6) {
+      const name = fields[0].replace(/^"|"$/g, '').trim();
+      if(name && name !== 'نام' && name !== 'نام و نام خانوادگی' && name !== 'نام') {
+        result.push({
+          id: maxId + result.length + 1,
+          name: name,
+          company: fields[1].replace(/^"|"$/g, '').trim(),
+          station: fields[2].replace(/^"|"$/g, '').trim(),
+          driver: fields[3].replace(/^"|"$/g, '').trim(),
+          route: fields[4].replace(/^"|"$/g, '').trim(),
+          shift: fields[5].replace(/^"|"$/g, '').trim()
+        });
+      }
+    }
+  }
+  return result;
+}
+
+function importCSV(mode) {
+  const newData = parseCSVToData(importFileData);
+  if(newData.length === 0) {
+    showImportMsg('❌ داده‌ای در فایل یافت نشد', false);
+    return;
+  }
+  let msg = '';
+  if(mode === 'replace') {
+    if(!confirm(`${newData.length} مسافر پیدا شد. داده‌های فعلی (${DATA.length} مسافر) جایگزین شوند؟`)) return;
+    DATA = newData;
+    msg = `✅ ${DATA.length} مسافر جایگزین شدند`;
+  } else {
+    if(!confirm(`${newData.length} مسافر به داده‌های موجود (${DATA.length} مسافر) اضافه شوند؟`)) return;
+    DATA = DATA.concat(newData);
+    msg = `✅ ${newData.length} مسافر اضافه شدند (مجموع: ${DATA.length})`;
+  }
+  saveData();
+  importFileData = null;
+  importFilename.style.display = 'none';
+  showImportMsg(msg);
+  updateAdminInfo();
+  renderOverview();
+  fillDriverSel();
+  importInput.value = '';
+}
+
+function showImportMsg(text, ok=true) {
+  const el = document.getElementById('import-msg');
+  el.innerHTML = `<div class="msg-box ${ok?'msg-ok':'msg-err'}">${text}</div>`;
+  setTimeout(()=>{ el.innerHTML = ''; }, 5000);
+}
+
+// ===== DRIVER MANAGEMENT =====
+function uniqRoutes() { return [...new Set(DATA.map(r=>r.route))].sort(); }
+function uniqDrivers() { return [...new Set(DATA.map(r=>r.driver))].sort(); }
+
+function fillRouteSels(...ids) {
+  const routes = uniqRoutes();
+  ids.forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    sel.innerHTML = '<option value="">— انتخاب مسیر موجود —</option>';
+    routes.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o); });
+  });
+}
+
+function fillDriverSels(...ids) {
+  const drivers = uniqDrivers();
+  ids.forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— راننده را انتخاب کنید —</option>';
+    drivers.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+    sel.value = cur;
+  });
+}
+
+function onEnterDriverAdmin(id) {
+  if(id==='admin-driver-add') { fillRouteSels('drv-add-route-sel'); document.getElementById('drv-add-name').value=''; document.getElementById('drv-add-route').value=''; document.getElementById('drv-add-route-sel').value=''; }
+  if(id==='admin-driver-edit') { fillDriverSels('drv-edit-sel'); document.getElementById('drv-edit-form').style.display='none'; }
+  if(id==='admin-driver-del') { fillDriverSels('drv-del-sel'); document.getElementById('drv-del-info').innerHTML=''; document.getElementById('drv-del-transfer').style.display='none'; }
+  if(id==='admin-route-edit') {
+    const routes = uniqRoutes();
+    const sel = document.getElementById('route-edit-sel');
+    sel.innerHTML = '<option value="">— مسیر را انتخاب کنید —</option>';
+    routes.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o); });
+    document.getElementById('route-edit-form').style.display='none';
+  }
+}
+
+function drvPickRoute() { const v = document.getElementById('drv-add-route-sel').value; if(v) document.getElementById('drv-add-route').value = v; }
+function drvEditPickRoute() { const v = document.getElementById('drv-edit-route-sel').value; if(v) document.getElementById('drv-edit-route').value = v; }
+
+function addDriver() {
+  const name = document.getElementById('drv-add-name').value.trim();
+  const route = document.getElementById('drv-add-route').value.trim();
+  if(!name){showMsg('drv-add-msg','نام راننده الزامی است',false);return;}
+  if(!route){showMsg('drv-add-msg','نام مسیر الزامی است',false);return;}
+  if(uniqDrivers().includes(name)){showMsg('drv-add-msg','این راننده قبلاً وجود دارد',false);return;}
+  const maxId = DATA.reduce((max, r) => Math.max(max, r.id || 0), 0);
+  DATA.push({ id: maxId + 1, name:'(خالی)',company:'',station:'',driver:name,route:route,shift:'A',_placeholder:true });
+  saveData();
+  document.getElementById('drv-add-name').value='';
+  document.getElementById('drv-add-route').value='';
+  document.getElementById('drv-add-route-sel').value='';
+  showMsg('drv-add-msg',`✅ راننده "${name}" با مسیر "${route}" اضافه شد`);
+  updateAdminInfo();
+  fillDriverSel();
+}
+
+function openDriverEdit(driver) {
+  if(!driver){document.getElementById('drv-edit-form').style.display='none';return;}
+  fillRouteSels('drv-edit-route-sel');
+  const route = DATA.find(r=>r.driver===driver)?.route||'';
+  document.getElementById('drv-edit-name').value = driver;
+  document.getElementById('drv-edit-route').value = route;
+  document.getElementById('drv-edit-route-sel').value = '';
+  document.getElementById('drv-edit-form').style.display = 'block';
+}
+
+function saveDriverEdit() {
+  const oldDriver = document.getElementById('drv-edit-sel').value;
+  const newDriver = document.getElementById('drv-edit-name').value.trim();
+  const newRoute  = document.getElementById('drv-edit-route').value.trim();
+  if(!newDriver){showMsg('drv-edit-msg','نام راننده الزامی است',false);return;}
+  if(!newRoute){showMsg('drv-edit-msg','نام مسیر الزامی است',false);return;}
+  let changed = 0;
+  DATA.forEach(r=>{ if(r.driver===oldDriver){ r.driver=newDriver; r.route=newRoute; changed++; } });
+  saveData();
+  fillDriverSels('drv-edit-sel');
+  document.getElementById('drv-edit-sel').value = newDriver;
+  document.getElementById('drv-edit-form').style.display='none';
+  showMsg('drv-edit-msg',`✅ "${oldDriver}" → "${newDriver}" (${changed} رکورد بروز شد)`);
+  updateAdminInfo();
+  fillDriverSel();
+}
+
+function showDriverDel(driver) {
+  if(!driver){ document.getElementById('drv-del-info').innerHTML=''; document.getElementById('drv-del-transfer').style.display='none'; return; }
+  const passengers = DATA.filter(r=>r.driver===driver && !r._placeholder);
+  document.getElementById('drv-del-info').innerHTML =
+    `<div class="detail-card" style="margin-bottom:12px">
+      <div class="detail-meta"><span class="pill pill-blue">${passengers.length} مسافر</span><span class="pill pill-green">${DATA.find(r=>r.driver===driver)?.route||'—'}</span></div>
+      <div class="pass-list" style="max-height:160px;overflow-y:auto">${
+        passengers.slice(0,10).map(p=>`<div class="pass-item"><div class="pass-name">${p.name}</div><span class="shift-badge s-${p.shift}">${p.shift}</span></div>`).join('')
+      }${passengers.length>10?`<div style="color:var(--muted);font-size:12px;padding:8px 0">و ${passengers.length-10} نفر دیگر...</div>`:''}</div>
+    </div>`;
+  const others = uniqDrivers().filter(d=>d!==driver);
+  const tSel = document.getElementById('drv-del-target');
+  tSel.innerHTML = '<option value="">— راننده مقصد —</option>';
+  others.forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; tSel.appendChild(o); });
+  document.getElementById('drv-del-transfer').style.display = 'block';
+}
+
+function deleteDriver(withPassengers) {
+  const driver = document.getElementById('drv-del-sel').value;
+  if(!driver) return;
+  const passengers = DATA.filter(r=>r.driver===driver && !r._placeholder);
+  if(withPassengers) {
+    if(!confirm(`راننده "${driver}" و ${passengers.length} مسافر حذف شوند؟`)) return;
+    DATA = DATA.filter(r=>r.driver!==driver);
+  } else {
+    const target = document.getElementById('drv-del-target').value;
+    if(!target){showMsg('drv-del-msg','راننده مقصد را انتخاب کنید',false);return;}
+    const targetRoute = DATA.find(r=>r.driver===target)?.route||'';
+    if(!confirm(`${passengers.length} مسافر به "${target}" منتقل و راننده "${driver}" حذف شود؟`)) return;
+    DATA.forEach(r=>{ if(r.driver===driver){ r.driver=target; r.route=targetRoute; } });
+    DATA = DATA.filter(r=>r.driver!==driver);
+  }
+  saveData();
+  fillDriverSels('drv-del-sel');
+  document.getElementById('drv-del-sel').value='';
+  document.getElementById('drv-del-info').innerHTML='';
+  document.getElementById('drv-del-transfer').style.display='none';
+  showMsg('drv-del-msg',`✅ راننده "${driver}" حذف شد`);
+  updateAdminInfo();
+  fillDriverSel();
+}
+
+function openRouteEdit(route) {
+  if(!route){document.getElementById('route-edit-form').style.display='none';return;}
+  const count = DATA.filter(r=>r.route===route).length;
+  document.getElementById('route-edit-cur').textContent = `مسیر: ${route}`;
+  document.getElementById('route-edit-info').textContent = `${count} مسافر در این مسیر`;
+  document.getElementById('route-edit-name').value = route;
+  document.getElementById('route-edit-form').style.display = 'block';
+}
+
+function saveRouteEdit() {
+  const oldRoute = document.getElementById('route-edit-sel').value;
+  const newRoute = document.getElementById('route-edit-name').value.trim();
+  if(!newRoute){showMsg('route-edit-msg','نام مسیر الزامی است',false);return;}
+  if(oldRoute===newRoute){showMsg('route-edit-msg','نامی تغییر نکرد',false);return;}
+  let changed=0;
+  DATA.forEach(r=>{ if(r.route===oldRoute){ r.route=newRoute; changed++; } });
+  saveData();
+  const routes = uniqRoutes();
+  const sel = document.getElementById('route-edit-sel');
+  sel.innerHTML = '<option value="">— مسیر را انتخاب کنید —</option>';
+  routes.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; sel.appendChild(o); });
+  sel.value = newRoute;
+  document.getElementById('route-edit-cur').textContent = `مسیر: ${newRoute}`;
+  document.getElementById('route-edit-info').textContent = `${changed} رکورد بروز شد`;
+  showMsg('route-edit-msg',`✅ "${oldRoute}" → "${newRoute}"`);
+  updateAdminInfo();
+}
+
+// ===== INIT =====
+loadData();
+</script>
+</body>
+</html>
